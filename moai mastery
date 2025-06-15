@@ -39,6 +39,39 @@ local function findClosestPlayer()
     return closestPlayer
 end
 
+-- 尋找10單位內的玩家
+local function findPlayerWithin10Units()
+    local localCharacter = LocalPlayer.Character
+    
+    if not localCharacter or not localCharacter:FindFirstChild("HumanoidRootPart") then
+        return nil
+    end
+    
+    local localPosition = localCharacter.HumanoidRootPart.Position
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - localPosition).Magnitude
+            if distance <= 10 then
+                return player
+            end
+        end
+    end
+    
+    return nil
+end
+
+-- 檢查玩家是否處於ragdoll狀態
+local function isPlayerRagdolled(player)
+    if not player.Character then return false end
+    
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    if not humanoid then return false end
+    
+    -- 檢查PlatformStand狀態（通常用於ragdoll）
+    return humanoid.PlatformStand == true
+end
+
 -- 修改名稱標籤的函數
 local function changeNametag()
     local playerName = LocalPlayer.Name
@@ -259,10 +292,65 @@ MainScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 MainScroll.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 MainScroll.ScrollingDirection = Enum.ScrollingDirection.Y
 
--- 第一個按鈕：自動攻擊
+-- 自動攻擊下拉選單按鈕
+local autoAttackDropdownBtn = Instance.new("TextButton", MainScroll)
+autoAttackDropdownBtn.Size = UDim2.new(0, 180, 0, 35)
+autoAttackDropdownBtn.Position = UDim2.new(0.5, -90, 0, 10)
+autoAttackDropdownBtn.Text = "第一任務 ▼"
+autoAttackDropdownBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+autoAttackDropdownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoAttackDropdownBtn.TextSize = 16
+autoAttackDropdownBtn.Font = Enum.Font.GothamBold
+autoAttackDropdownBtn.BorderSizePixel = 0
+
+Instance.new("UICorner", autoAttackDropdownBtn).CornerRadius = UDim.new(0, 8)
+
+local autoAttackDropdownStroke = Instance.new("UIStroke", autoAttackDropdownBtn)
+autoAttackDropdownStroke.Color = Color3.fromRGB(120, 170, 255)
+autoAttackDropdownStroke.Thickness = 1
+autoAttackDropdownStroke.Transparency = 0.6
+
+-- 自動攻擊下拉菜單
+local autoAttackDropdownMenu = Instance.new("Frame", MainScroll)
+autoAttackDropdownMenu.Size = UDim2.new(0, 180, 0, 70)
+autoAttackDropdownMenu.Position = UDim2.new(0.5, -90, 0, 45)
+autoAttackDropdownMenu.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+autoAttackDropdownMenu.BorderSizePixel = 0
+autoAttackDropdownMenu.Visible = false
+
+Instance.new("UICorner", autoAttackDropdownMenu).CornerRadius = UDim.new(0, 8)
+
+local autoAttackMenuStroke = Instance.new("UIStroke", autoAttackDropdownMenu)
+autoAttackMenuStroke.Color = Color3.fromRGB(120, 170, 255)
+autoAttackMenuStroke.Thickness = 1
+autoAttackMenuStroke.Transparency = 0.6
+
+-- 自動攻擊下拉選項1
+local autoAttackOption1 = Instance.new("TextButton", autoAttackDropdownMenu)
+autoAttackOption1.Size = UDim2.new(1, 0, 0, 35)
+autoAttackOption1.Position = UDim2.new(0, 0, 0, 0)
+autoAttackOption1.Text = "第一任務"
+autoAttackOption1.BackgroundColor3 = Color3.fromRGB(60, 60, 85)
+autoAttackOption1.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoAttackOption1.TextSize = 14
+autoAttackOption1.Font = Enum.Font.Gotham
+autoAttackOption1.BorderSizePixel = 0
+
+-- 自動攻擊下拉選項2
+local autoAttackOption2 = Instance.new("TextButton", autoAttackDropdownMenu)
+autoAttackOption2.Size = UDim2.new(1, 0, 0, 35)
+autoAttackOption2.Position = UDim2.new(0, 0, 0, 35)
+autoAttackOption2.Text = "第三任務"
+autoAttackOption2.BackgroundColor3 = Color3.fromRGB(60, 60, 85)
+autoAttackOption2.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoAttackOption2.TextSize = 14
+autoAttackOption2.Font = Enum.Font.Gotham
+autoAttackOption2.BorderSizePixel = 0
+
+-- 自動攻擊開關按鈕
 local autoAttackBtn = Instance.new("TextButton", MainScroll)
 autoAttackBtn.Size = UDim2.new(0, 180, 0, 35)
-autoAttackBtn.Position = UDim2.new(0.5, -90, 0, 10)
+autoAttackBtn.Position = UDim2.new(0.5, -90, 0, 55)
 autoAttackBtn.Text = "自動攻擊: 關"
 autoAttackBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
 autoAttackBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -280,7 +368,7 @@ attackBtnStroke.Transparency = 0.6
 -- 輸入框
 local playerInput = Instance.new("TextBox", MainScroll)
 playerInput.Size = UDim2.new(0, 180, 0, 35)
-playerInput.Position = UDim2.new(0.5, -90, 0, 55)
+playerInput.Position = UDim2.new(0.5, -90, 0, 100)
 playerInput.PlaceholderText = "輸入玩家名稱"
 playerInput.Text = ""
 playerInput.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
@@ -297,78 +385,23 @@ inputStroke.Color = Color3.fromRGB(120, 170, 255)
 inputStroke.Thickness = 1
 inputStroke.Transparency = 0.6
 
--- 下拉選單按鈕
-local dropdownBtn = Instance.new("TextButton", MainScroll)
-dropdownBtn.Size = UDim2.new(0, 180, 0, 35)
-dropdownBtn.Position = UDim2.new(0.5, -90, 0, 100)
-dropdownBtn.Text = "第一任務 ▼"
-dropdownBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-dropdownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-dropdownBtn.TextSize = 16
-dropdownBtn.Font = Enum.Font.GothamBold
-dropdownBtn.BorderSizePixel = 0
+-- 幫助他人按鈕（只有第一任務）
+local helpTaskBtn = Instance.new("TextButton", MainScroll)
+helpTaskBtn.Size = UDim2.new(0, 180, 0, 35)
+helpTaskBtn.Position = UDim2.new(0.5, -90, 0, 145)
+helpTaskBtn.Text = "幫助他人: 關"
+helpTaskBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+helpTaskBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+helpTaskBtn.TextSize = 16
+helpTaskBtn.Font = Enum.Font.GothamBold
+helpTaskBtn.BorderSizePixel = 0
 
-Instance.new("UICorner", dropdownBtn).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", helpTaskBtn).CornerRadius = UDim.new(0, 8)
 
-local dropdownStroke = Instance.new("UIStroke", dropdownBtn)
-dropdownStroke.Color = Color3.fromRGB(120, 170, 255)
-dropdownStroke.Thickness = 1
-dropdownStroke.Transparency = 0.6
-
--- 下拉菜單
-local dropdownMenu = Instance.new("Frame", MainScroll)
-dropdownMenu.Size = UDim2.new(0, 180, 0, 70)
-dropdownMenu.Position = UDim2.new(0.5, -90, 0, 135)
-dropdownMenu.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
-dropdownMenu.BorderSizePixel = 0
-dropdownMenu.Visible = false
-
-Instance.new("UICorner", dropdownMenu).CornerRadius = UDim.new(0, 8)
-
-local menuStroke = Instance.new("UIStroke", dropdownMenu)
-menuStroke.Color = Color3.fromRGB(120, 170, 255)
-menuStroke.Thickness = 1
-menuStroke.Transparency = 0.6
-
--- 下拉選項1
-local option1 = Instance.new("TextButton", dropdownMenu)
-option1.Size = UDim2.new(1, 0, 0, 35)
-option1.Position = UDim2.new(0, 0, 0, 0)
-option1.Text = "第一任務"
-option1.BackgroundColor3 = Color3.fromRGB(60, 60, 85)
-option1.TextColor3 = Color3.fromRGB(255, 255, 255)
-option1.TextSize = 14
-option1.Font = Enum.Font.Gotham
-option1.BorderSizePixel = 0
-
--- 下拉選項2
-local option2 = Instance.new("TextButton", dropdownMenu)
-option2.Size = UDim2.new(1, 0, 0, 35)
-option2.Position = UDim2.new(0, 0, 0, 35)
-option2.Text = "第三任務"
-option2.BackgroundColor3 = Color3.fromRGB(60, 60, 85)
-option2.TextColor3 = Color3.fromRGB(255, 255, 255)
-option2.TextSize = 14
-option2.Font = Enum.Font.Gotham
-option2.BorderSizePixel = 0
-
--- 任務開始按鈕
-local startTaskBtn = Instance.new("TextButton", MainScroll)
-startTaskBtn.Size = UDim2.new(0, 180, 0, 35)
-startTaskBtn.Position = UDim2.new(0.5, -90, 0, 145)
-startTaskBtn.Text = "開始任務: 關"
-startTaskBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-startTaskBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-startTaskBtn.TextSize = 16
-startTaskBtn.Font = Enum.Font.GothamBold
-startTaskBtn.BorderSizePixel = 0
-
-Instance.new("UICorner", startTaskBtn).CornerRadius = UDim.new(0, 8)
-
-local taskBtnStroke = Instance.new("UIStroke", startTaskBtn)
-taskBtnStroke.Color = Color3.fromRGB(120, 170, 255)
-taskBtnStroke.Thickness = 1
-taskBtnStroke.Transparency = 0.6
+local helpTaskBtnStroke = Instance.new("UIStroke", helpTaskBtn)
+helpTaskBtnStroke.Color = Color3.fromRGB(120, 170, 255)
+helpTaskBtnStroke.Thickness = 1
+helpTaskBtnStroke.Transparency = 0.6
 
 -- 創建補間動畫函數
 local function animateButtonPosition(button, targetPosition, duration)
@@ -382,6 +415,43 @@ local function animateButtonPosition(button, targetPosition, duration)
     return tween
 end
 
+-- 自動攻擊下拉選單功能
+autoAttackDropdownBtn.MouseButton1Click:Connect(function()
+    autoAttackDropdownMenu.Visible = not autoAttackDropdownMenu.Visible
+    
+    if autoAttackDropdownMenu.Visible then
+        -- 選單展開時，將其他按鈕向下移動
+        animateButtonPosition(autoAttackBtn, UDim2.new(0.5, -90, 0, 125))
+        animateButtonPosition(playerInput, UDim2.new(0.5, -90, 0, 170))
+        animateButtonPosition(helpTaskBtn, UDim2.new(0.5, -90, 0, 215))
+    else
+        -- 選單關閉時，將其他按鈕移回原位
+        animateButtonPosition(autoAttackBtn, UDim2.new(0.5, -90, 0, 55))
+        animateButtonPosition(playerInput, UDim2.new(0.5, -90, 0, 100))
+        animateButtonPosition(helpTaskBtn, UDim2.new(0.5, -90, 0, 145))
+    end
+end)
+
+autoAttackOption1.MouseButton1Click:Connect(function()
+    currentTaskMode = "第一任務"
+    autoAttackDropdownBtn.Text = "第一任務 ▼"
+    autoAttackDropdownMenu.Visible = false
+    -- 選單關閉時移回按鈕
+    animateButtonPosition(autoAttackBtn, UDim2.new(0.5, -90, 0, 55))
+    animateButtonPosition(playerInput, UDim2.new(0.5, -90, 0, 100))
+    animateButtonPosition(helpTaskBtn, UDim2.new(0.5, -90, 0, 145))
+end)
+
+autoAttackOption2.MouseButton1Click:Connect(function()
+    currentTaskMode = "第三任務"
+    autoAttackDropdownBtn.Text = "第三任務 ▼"
+    autoAttackDropdownMenu.Visible = false
+    -- 選單關閉時移回按鈕
+    animateButtonPosition(autoAttackBtn, UDim2.new(0.5, -90, 0, 55))
+    animateButtonPosition(playerInput, UDim2.new(0.5, -90, 0, 100))
+    animateButtonPosition(helpTaskBtn, UDim2.new(0.5, -90, 0, 145))
+end)
+
 -- 自動攻擊功能
 autoAttackBtn.MouseButton1Click:Connect(function()
     isAutoAttackEnabled = not isAutoAttackEnabled
@@ -390,12 +460,44 @@ autoAttackBtn.MouseButton1Click:Connect(function()
     if isAutoAttackEnabled then
         autoAttackLoop = task.spawn(function()
             while isAutoAttackEnabled do
-                local closestPlayer = findClosestPlayer()
-                if closestPlayer then
-                    local args = {
-                        [1] = closestPlayer.Character.Head
-                    }
-                    game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
+                if currentTaskMode == "第一任務" then
+                    -- 第一任務：偵測10單位內的玩家，等待ragdoll後攻擊
+                    local nearbyPlayer = findPlayerWithin10Units()
+                    if nearbyPlayer then
+                        -- 等待該玩家進入ragdoll狀態
+                        local wasRagdolled = false
+                        while isAutoAttackEnabled and nearbyPlayer.Character do
+                            if isPlayerRagdolled(nearbyPlayer) then
+                                wasRagdolled = true
+                                break
+                            end
+                            task.wait(0.1)
+                        end
+                        
+                        -- 如果偵測到ragdoll，等待玩家恢復後攻擊
+                        if wasRagdolled and isAutoAttackEnabled then
+                            while isAutoAttackEnabled and nearbyPlayer.Character and isPlayerRagdolled(nearbyPlayer) do
+                                task.wait(0.1)
+                            end
+                            
+                            -- 玩家恢復後立即攻擊
+                            if isAutoAttackEnabled and nearbyPlayer.Character and nearbyPlayer.Character:FindFirstChild("Head") then
+                                local args = {
+                                    [1] = nearbyPlayer.Character.Head
+                                }
+                                game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
+                            end
+                        end
+                    end
+                elseif currentTaskMode == "第三任務" then
+                    -- 第三任務：和原本的自動攻擊一樣
+                    local closestPlayer = findClosestPlayer()
+                    if closestPlayer then
+                        local args = {
+                            [1] = closestPlayer.Character.Head
+                        }
+                        game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
+                    end
                 end
                 task.wait(1)
             end
@@ -406,44 +508,15 @@ autoAttackBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 下拉選單功能 - 添加動畫效果
-dropdownBtn.MouseButton1Click:Connect(function()
-    dropdownMenu.Visible = not dropdownMenu.Visible
-    
-    if dropdownMenu.Visible then
-        -- 選單展開時，將開始任務按鈕移動到選單下方
-        animateButtonPosition(startTaskBtn, UDim2.new(0.5, -90, 0, 215))
-    else
-        -- 選單關閉時，將開始任務按鈕移回原位
-        animateButtonPosition(startTaskBtn, UDim2.new(0.5, -90, 0, 145))
-    end
-end)
-
-option1.MouseButton1Click:Connect(function()
-    currentTaskMode = "第一任務"
-    dropdownBtn.Text = "第一任務 ▼"
-    dropdownMenu.Visible = false
-    -- 選單關閉時移回按鈕
-    animateButtonPosition(startTaskBtn, UDim2.new(0.5, -90, 0, 145))
-end)
-
-option2.MouseButton1Click:Connect(function()
-    currentTaskMode = "第三任務"
-    dropdownBtn.Text = "第三任務 ▼"
-    dropdownMenu.Visible = false
-    -- 選單關閉時移回按鈕
-    animateButtonPosition(startTaskBtn, UDim2.new(0.5, -90, 0, 145))
-end)
-
--- 任務功能
-startTaskBtn.MouseButton1Click:Connect(function()
+-- 幫助他人功能（只有第一任務）
+helpTaskBtn.MouseButton1Click:Connect(function()
     isTaskEnabled = not isTaskEnabled
-    startTaskBtn.Text = isTaskEnabled and "開始任務: 開" or "開始任務: 關"
+    helpTaskBtn.Text = isTaskEnabled and "幫助他人: 開" or "幫助他人: 關"
     
     if isTaskEnabled then
         local targetName = playerInput.Text
         if targetName == "" then
-            startTaskBtn.Text = "開始任務: 關"
+            helpTaskBtn.Text = "幫助他人: 關"
             isTaskEnabled = false
             return
         end
