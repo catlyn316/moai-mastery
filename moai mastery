@@ -454,59 +454,60 @@ end)
 
 -- 自動攻擊功能
 autoAttackBtn.MouseButton1Click:Connect(function()
-    isAutoAttackEnabled = not isAutoAttackEnabled
-    autoAttackBtn.Text = isAutoAttackEnabled and "自動攻擊: 開" or "自動攻擊: 關"
-    
-    if isAutoAttackEnabled then
-        autoAttackLoop = task.spawn(function()
-            while isAutoAttackEnabled do
-                if currentTaskMode == "第一任務" then
-                    -- 第一任務：偵測10單位內的玩家，等待ragdoll後攻擊
-                    local nearbyPlayer = findPlayerWithin10Units()
-                    if nearbyPlayer then
-                        -- 等待該玩家進入ragdoll狀態
-                        local wasRagdolled = false
-                        while isAutoAttackEnabled and nearbyPlayer.Character do
-                            if isPlayerRagdolled(nearbyPlayer) then
-                                wasRagdolled = true
-                                break
-                            end
-                            task.wait(0.1)
-                        end
-                        
-                        -- 如果偵測到ragdoll，等待玩家恢復後攻擊
-                        if wasRagdolled and isAutoAttackEnabled then
-                            while isAutoAttackEnabled and nearbyPlayer.Character and isPlayerRagdolled(nearbyPlayer) do
-                                task.wait(0.1)
-                            end
-                            
-                            -- 玩家恢復後立即攻擊
-                            if isAutoAttackEnabled and nearbyPlayer.Character and nearbyPlayer.Character:FindFirstChild("Head") then
-                                local args = {
-                                    [1] = nearbyPlayer.Character.Head
-                                }
-                                game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
-                            end
-                        end
-                    end
-                elseif currentTaskMode == "第三任務" then
-                    -- 第三任務：和原本的自動攻擊一樣
-                    local closestPlayer = findClosestPlayer()
-                    if closestPlayer then
-                        local args = {
-                            [1] = closestPlayer.Character.Head
-                        }
-                        game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
-                    end
-                end
-                task.wait(1)
-            end
-        end)
-    elseif autoAttackLoop then
-        task.cancel(autoAttackLoop)
-        autoAttackLoop = nil
-    end
+   isAutoAttackEnabled = not isAutoAttackEnabled
+   autoAttackBtn.Text = isAutoAttackEnabled and "自動攻擊: 開" or "自動攻擊: 關"
+   
+   if isAutoAttackEnabled then
+       autoAttackLoop = task.spawn(function()
+           while isAutoAttackEnabled do
+               if currentTaskMode == "第一任務" then
+                   -- 第一任務：偵測10單位內的玩家，等待ragdoll後攻擊
+                   local nearbyPlayer = findPlayerWithin10Units()
+                   if nearbyPlayer then
+                       -- 等待該玩家進入ragdoll狀態
+                       local wasRagdolled = false
+                       while isAutoAttackEnabled and nearbyPlayer.Character do
+                           if isPlayerRagdolled(nearbyPlayer) then
+                               wasRagdolled = true
+                               break
+                           end
+                           task.wait(0.1)
+                       end
+                       
+                       -- 如果偵測到ragdoll，等待0.5秒後攻擊
+                       if wasRagdolled and isAutoAttackEnabled then
+                           task.wait(0.5)
+                           
+                           -- 等待0.5秒後立即攻擊
+                           if isAutoAttackEnabled and nearbyPlayer.Character and nearbyPlayer.Character:FindFirstChild("Head") then
+                               local args = {
+                                   [1] = nearbyPlayer.Character.Head
+                               }
+                               game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
+                           end
+                       end
+                   end
+               elseif currentTaskMode == "第三任務" then
+                   -- 第三任務：和原本的自動攻擊一樣
+                   local closestPlayer = findClosestPlayer()
+                   if closestPlayer then
+                       local args = {
+                           [1] = closestPlayer.Character.Head
+                       }
+                       game:GetService("ReplicatedStorage").GeneralHit:FireServer(unpack(args))
+                   end
+               end
+               task.wait(1)
+           end
+       end)
+   elseif autoAttackLoop then
+       task.cancel(autoAttackLoop)
+       autoAttackLoop = nil
+   end
 end)
+                        
+                       
+
 
 -- 幫助他人功能（只有第一任務）
 helpTaskBtn.MouseButton1Click:Connect(function()
