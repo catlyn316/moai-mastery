@@ -596,14 +596,7 @@ helpTaskBtn.MouseButton1Click:Connect(function()
                         if isTaskEnabled and playerWorkspaceFolder then
                             local lastSlappedBy = playerWorkspaceFolder:FindFirstChild("LastSlappedBy")
                             if lastSlappedBy and lastSlappedBy.Value == targetName then
-                                
-                                -- 安全傳送到指定坐標
-                                pcall(function()
-                                    if humanoidRootPart and humanoidRootPart.Parent then
-                                        humanoidRootPart.CFrame = CFrame.new(263, 13, 197)
-                                    end
-                                end)
-                                
+                          
                                 task.wait(0.2)
                                 
                                 -- 安全重置
