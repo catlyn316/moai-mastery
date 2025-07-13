@@ -19,13 +19,13 @@ local function findClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
     local localCharacter = LocalPlayer.Character
-
+    
     if not localCharacter or not localCharacter:FindFirstChild("HumanoidRootPart") then
         return nil
     end
-
+    
     local localPosition = localCharacter.HumanoidRootPart.Position
-
+    
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local distance = (player.Character.HumanoidRootPart.Position - localPosition).Magnitude
@@ -35,20 +35,20 @@ local function findClosestPlayer()
             end
         end
     end
-
+    
     return closestPlayer
 end
 
 -- 尋找10單位內的玩家
 local function findPlayerWithin10Units()
     local localCharacter = LocalPlayer.Character
-
+    
     if not localCharacter or not localCharacter:FindFirstChild("HumanoidRootPart") then
         return nil
     end
-
+    
     local localPosition = localCharacter.HumanoidRootPart.Position
-
+    
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local distance = (player.Character.HumanoidRootPart.Position - localPosition).Magnitude
@@ -57,22 +57,25 @@ local function findPlayerWithin10Units()
             end
         end
     end
-
+    
     return nil
 end
 
 -- 檢查玩家是否處於ragdoll狀態
 local function isPlayerRagdolled(player)
     if not player.Character then return false end
+    
     local humanoid = player.Character:FindFirstChild("Humanoid")
     if not humanoid then return false end
+    
+    -- 檢查PlatformStand狀態（通常用於ragdoll）
     return humanoid.PlatformStand == true
 end
 
 -- 修改名稱標籤的函數
 local function changeNametag()
     local playerName = LocalPlayer.Name
-    local character = Workspace:FindFirstChild(playerName)
+    local character = workspace:FindFirstChild(playerName)
     if character then
         local head = character:FindFirstChild("Head")
         if head then
@@ -90,20 +93,21 @@ local function changeNametag()
     end
 end
 
+-- 初次執行修改名稱
 changeNametag()
 
+-- 監聽角色重生事件，重生後重新應用名稱
 LocalPlayer.CharacterAdded:Connect(function(character)
     character:WaitForChild("Head", 10)
-    task.wait(0.5)
+    wait(0.5)
     changeNametag()
 end)
 
--- ✅ 正確插入到 PlayerGui
-local ScreenGui = Instance.new("ScreenGui")
+-- GUI 主體
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 ScreenGui.Name = "MaolingHub"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- 框架
+-- 主框架樣式
 local Frame = Instance.new("Frame", ScreenGui)
 Frame.Size = UDim2.new(0, 450, 0, 350)
 Frame.Position = UDim2.new(0.5, -225, 0.5, -175)
@@ -112,6 +116,7 @@ Frame.BorderSizePixel = 0
 Frame.Active = true
 Frame.Draggable = true
 
+-- 添加漸層效果
 local gradient = Instance.new("UIGradient", Frame)
 gradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
@@ -119,6 +124,7 @@ gradient.Color = ColorSequence.new{
 }
 gradient.Rotation = 45
 
+-- 添加外發光效果
 local stroke = Instance.new("UIStroke", Frame)
 stroke.Color = Color3.fromRGB(100, 150, 255)
 stroke.Thickness = 2
@@ -126,21 +132,24 @@ stroke.Transparency = 0.5
 
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 15)
 
+-- 標題樣式
 local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1, -80, 0, 50)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "✨ 貓玲的腳本區 ✨ v0.3"
+Title.Text = "✨ 貓玲的腳本區 ✨"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 22
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
+-- 添加標題發光效果
 local titleStroke = Instance.new("UIStroke", Title)
 titleStroke.Color = Color3.fromRGB(100, 150, 255)
 titleStroke.Thickness = 1
 titleStroke.Transparency = 0.3
 
+-- 關閉按鈕樣式和功能
 local Close = Instance.new("TextButton", Frame)
 Close.Size = UDim2.new(0, 35, 0, 35)
 Close.Position = UDim2.new(1, -40, 0, 8)
@@ -151,6 +160,7 @@ Close.Font = Enum.Font.GothamBold
 Close.TextSize = 18
 Close.BorderSizePixel = 0
 
+-- 添加關閉按鈕效果
 local closeGradient = Instance.new("UIGradient", Close)
 closeGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 60, 60)),
@@ -159,11 +169,13 @@ closeGradient.Color = ColorSequence.new{
 
 Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
 
+-- 關閉按鈕功能
 Close.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
     _G.maolingHubLoaded = false
 end)
 
+-- 最小化按鈕樣式
 local Minimize = Instance.new("TextButton", Frame)
 Minimize.Size = UDim2.new(0, 35, 0, 35)
 Minimize.Position = UDim2.new(1, -80, 0, 8)
@@ -182,15 +194,18 @@ minimizeGradient.Color = ColorSequence.new{
 
 Instance.new("UICorner", Minimize).CornerRadius = UDim.new(0, 8)
 
+-- 側邊欄為可滾動
 local SideBar = Instance.new("ScrollingFrame", Frame)
 SideBar.Size = UDim2.new(0, 130, 1, -55)
 SideBar.Position = UDim2.new(0, 5, 0, 50)
 SideBar.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
 SideBar.BorderSizePixel = 0
 SideBar.ScrollBarThickness = 6
+SideBar.CanvasSize = UDim2.new(0, 0, 0, 200)
 SideBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 SideBar.ScrollingDirection = Enum.ScrollingDirection.Y
 
+-- 添加側邊欄樣式
 local sidebarGradient = Instance.new("UIGradient", SideBar)
 sidebarGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 50)),
@@ -199,10 +214,12 @@ sidebarGradient.Color = ColorSequence.new{
 
 Instance.new("UICorner", SideBar).CornerRadius = UDim.new(0, 10)
 
+-- 添加UIListLayout到側邊欄
 local sidebarLayout = Instance.new("UIListLayout", SideBar)
 sidebarLayout.Padding = UDim.new(0, 8)
 sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
+-- 內容區域
 local Content = Instance.new("Frame", Frame)
 Content.Size = UDim2.new(1, -145, 1, -55)
 Content.Position = UDim2.new(0, 140, 0, 50)
@@ -217,6 +234,7 @@ contentGradient.Color = ColorSequence.new{
 
 Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 10)
 
+-- 縮小功能
 local isMinimized = false
 local fullSize = UDim2.new(0, 450, 0, 350)
 local miniSize = UDim2.new(0, 450, 0, 50)
@@ -228,39 +246,40 @@ Minimize.MouseButton1Click:Connect(function()
     Frame.Size = isMinimized and miniSize or fullSize
 end)
 
+-- 創建分區按鈕的函數
 local function createSectionButton(text, order, parent)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, 120, 0, 45)
     btn.Text = text
     btn.BackgroundColor3 = Color3.fromRGB(85, 85, 105)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextTransparency = 0
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 16
     btn.BorderSizePixel = 0
-
+    
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-
+    
     local btnStroke = Instance.new("UIStroke", btn)
     btnStroke.Color = Color3.fromRGB(150, 180, 255)
     btnStroke.Thickness = 1
     btnStroke.Transparency = 0.6
-
+    
     btn.MouseEnter:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(105, 105, 125)
         btnStroke.Transparency = 0.3
     end)
-
+    
     btn.MouseLeave:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(85, 85, 105)
         btnStroke.Transparency = 0.6
     end)
-
+    
     return btn
 end
 
-createSectionButton("🗿", 1, SideBar)
-
--- 其餘自動攻擊、下拉、按鈕、幫助他人邏輯 全部接上即可（和原來一致）
+-- 創建唯一分區按鈕
+local Section1 = createSectionButton("🗿", 1, SideBar)
 
 -- 主要內容區域
 local MainScroll = Instance.new("ScrollingFrame", Content)
@@ -488,6 +507,8 @@ autoAttackBtn.MouseButton1Click:Connect(function()
 end)
                         
                        
+
+
 -- 幫助他人功能（只有第一任務）
 helpTaskBtn.MouseButton1Click:Connect(function()
     isTaskEnabled = not isTaskEnabled
@@ -529,45 +550,47 @@ helpTaskBtn.MouseButton1Click:Connect(function()
                         task.wait(0.3)
                     end
                     
-                    -- 持續移動到ÅMoyaiStatue目標位置
-                    local moyaiStatueName = "ÅMoyaiStatue" .. targetName
-                    local playerWorkspaceFolder = Workspace:FindFirstChild(LocalPlayer.Name)
-                    local lastUpdateTime = tick()
-                    
-                    -- 持續移動直到檢測到LastSlappedBy
-                    while isTaskEnabled and character.Parent and humanoid.Health > 0 do
+                    -- 持續跟隨目標玩家
+                    local targetPlayer = Players:FindFirstChild(targetName)
+                    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and isTaskEnabled then
+                        local playerWorkspaceFolder = Workspace:FindFirstChild(LocalPlayer.Name)
+                        local lastUpdateTime = tick()
                         
-                        -- 檢查是否被目標玩家打中
-                        if playerWorkspaceFolder then
+                        -- 持續移動直到檢測到LastSlappedBy
+                        while isTaskEnabled and character.Parent and humanoid.Health > 0 and playerWorkspaceFolder do
+                            
+                            -- 檢查是否被目標玩家打中
                             local lastSlappedBy = playerWorkspaceFolder:FindFirstChild("LastSlappedBy")
                             if lastSlappedBy and lastSlappedBy.Value == targetName then
                                 task.wait(0.5) -- 等待0.5秒
                                 break -- 跳出循環進行重置
                             end
-                        end
-                        
-                        local currentTime = tick()
-                        if currentTime - lastUpdateTime < 0.1 then
-                            task.wait(0.05)
-                            continue
-                        end
-                        lastUpdateTime = currentTime
-                        
-                        -- 尋找ÅMoyaiStatue目標
-                        local moyaiStatue = Workspace:FindFirstChild(moyaiStatueName)
-                        if moyaiStatue then
+                            
+                            local currentTime = tick()
+                            if currentTime - lastUpdateTime < 0.2 then
+                                task.wait(0.1)
+                                continue
+                            end
+                            lastUpdateTime = currentTime
+                            
+                            if not (targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+                                break
+                            end
+                            
                             pcall(function()
-                                local targetPos = moyaiStatue.Position
+                                local targetRoot = targetPlayer.Character.HumanoidRootPart
+                                local targetPos = targetRoot.Position
+                                local targetLookDirection = targetRoot.CFrame.LookVector
                                 
-                                -- 直接移動到目標位置
-                                if (humanoidRootPart.Position - targetPos).Magnitude > 2 then
-                                    humanoidRootPart.CFrame = CFrame.new(targetPos, targetPos + Vector3.new(0, 0, 1))
+                                local newPos = targetPos + (targetLookDirection * 5) + Vector3.new(0, 2, 0)
+                                
+                                if (humanoidRootPart.Position - newPos).Magnitude > 1 then
+                                    humanoidRootPart.CFrame = CFrame.new(newPos, newPos + targetLookDirection)
                                 end
                             end)
+                            
+                            task.wait(0.1)
                         end
-                        
-                        task.wait(0.05)
-                    end
                         
                         -- 檢查LastSlappedBy並重置
                         if isTaskEnabled and playerWorkspaceFolder then
