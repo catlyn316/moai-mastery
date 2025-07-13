@@ -137,7 +137,7 @@ local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1, -80, 0, 50)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "✨ 貓玲的腳本區 ✨"
+Title.Text = "✨ 貓玲的腳本區 ✨ v0.1"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 22
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -507,8 +507,6 @@ autoAttackBtn.MouseButton1Click:Connect(function()
 end)
                         
                        
-
-
 -- 幫助他人功能（只有第一任務）
 helpTaskBtn.MouseButton1Click:Connect(function()
     isTaskEnabled = not isTaskEnabled
@@ -550,11 +548,12 @@ helpTaskBtn.MouseButton1Click:Connect(function()
                         task.wait(0.3)
                     end
                     
-                    -- 持續跟隨目標玩家
+                    -- 持續移動到ÅMoyaiStatue目標位置
                     local targetPlayer = Players:FindFirstChild(targetName)
-                    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and isTaskEnabled then
+                    if targetPlayer and isTaskEnabled then
                         local playerWorkspaceFolder = Workspace:FindFirstChild(LocalPlayer.Name)
                         local lastUpdateTime = tick()
+                        local moyaiStatueName = "ÅMoyaiStatue" .. targetName
                         
                         -- 持續移動直到檢測到LastSlappedBy
                         while isTaskEnabled and character.Parent and humanoid.Health > 0 and playerWorkspaceFolder do
@@ -573,19 +572,19 @@ helpTaskBtn.MouseButton1Click:Connect(function()
                             end
                             lastUpdateTime = currentTime
                             
-                            if not (targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-                                break
+                            -- 尋找ÅMoyaiStatue目標
+                            local moyaiStatue = Workspace:FindFirstChild(moyaiStatueName)
+                            if not moyaiStatue then
+                                task.wait(0.1)
+                                continue
                             end
                             
                             pcall(function()
-                                local targetRoot = targetPlayer.Character.HumanoidRootPart
-                                local targetPos = targetRoot.Position
-                                local targetLookDirection = targetRoot.CFrame.LookVector
+                                local targetPos = moyaiStatue.Position
                                 
-                                local newPos = targetPos + (targetLookDirection * 5) + Vector3.new(0, 2, 0)
-                                
-                                if (humanoidRootPart.Position - newPos).Magnitude > 1 then
-                                    humanoidRootPart.CFrame = CFrame.new(newPos, newPos + targetLookDirection)
+                                -- 直接移動到目標位置，不加上方偏移
+                                if (humanoidRootPart.Position - targetPos).Magnitude > 1 then
+                                    humanoidRootPart.CFrame = CFrame.new(targetPos)
                                 end
                             end)
                             
