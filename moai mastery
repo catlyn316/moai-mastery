@@ -137,7 +137,7 @@ local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1, -80, 0, 50)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "✨ 貓玲的腳本區 ✨ v0.1"
+Title.Text = "✨ 貓玲的腳本區 ✨ v0.2"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 22
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -549,47 +549,44 @@ helpTaskBtn.MouseButton1Click:Connect(function()
                     end
                     
                     -- 持續移動到ÅMoyaiStatue目標位置
-                    local targetPlayer = Players:FindFirstChild(targetName)
-                    if targetPlayer and isTaskEnabled then
-                        local playerWorkspaceFolder = Workspace:FindFirstChild(LocalPlayer.Name)
-                        local lastUpdateTime = tick()
-                        local moyaiStatueName = "ÅMoyaiStatue" .. targetName
+                    local moyaiStatueName = "ÅMoyaiStatue" .. targetName
+                    local playerWorkspaceFolder = Workspace:FindFirstChild(LocalPlayer.Name)
+                    local lastUpdateTime = tick()
+                    
+                    -- 持續移動直到檢測到LastSlappedBy
+                    while isTaskEnabled and character.Parent and humanoid.Health > 0 do
                         
-                        -- 持續移動直到檢測到LastSlappedBy
-                        while isTaskEnabled and character.Parent and humanoid.Health > 0 and playerWorkspaceFolder do
-                            
-                            -- 檢查是否被目標玩家打中
+                        -- 檢查是否被目標玩家打中
+                        if playerWorkspaceFolder then
                             local lastSlappedBy = playerWorkspaceFolder:FindFirstChild("LastSlappedBy")
                             if lastSlappedBy and lastSlappedBy.Value == targetName then
                                 task.wait(0.5) -- 等待0.5秒
                                 break -- 跳出循環進行重置
                             end
-                            
-                            local currentTime = tick()
-                            if currentTime - lastUpdateTime < 0.2 then
-                                task.wait(0.1)
-                                continue
-                            end
-                            lastUpdateTime = currentTime
-                            
-                            -- 尋找ÅMoyaiStatue目標
-                            local moyaiStatue = Workspace:FindFirstChild(moyaiStatueName)
-                            if not moyaiStatue then
-                                task.wait(0.1)
-                                continue
-                            end
-                            
+                        end
+                        
+                        local currentTime = tick()
+                        if currentTime - lastUpdateTime < 0.1 then
+                            task.wait(0.05)
+                            continue
+                        end
+                        lastUpdateTime = currentTime
+                        
+                        -- 尋找ÅMoyaiStatue目標
+                        local moyaiStatue = Workspace:FindFirstChild(moyaiStatueName)
+                        if moyaiStatue then
                             pcall(function()
                                 local targetPos = moyaiStatue.Position
                                 
-                                -- 直接移動到目標位置，不加上方偏移
-                                if (humanoidRootPart.Position - targetPos).Magnitude > 1 then
-                                    humanoidRootPart.CFrame = CFrame.new(targetPos)
+                                -- 直接移動到目標位置
+                                if (humanoidRootPart.Position - targetPos).Magnitude > 2 then
+                                    humanoidRootPart.CFrame = CFrame.new(targetPos, targetPos + Vector3.new(0, 0, 1))
                                 end
                             end)
-                            
-                            task.wait(0.1)
                         end
+                        
+                        task.wait(0.05)
+                    end
                         
                         -- 檢查LastSlappedBy並重置
                         if isTaskEnabled and playerWorkspaceFolder then
